@@ -77,6 +77,9 @@ CREATE POLICY "auth_all" ON photos        FOR ALL TO authenticated USING (true) 
 CREATE POLICY "auth_all" ON treeholes     FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "auth_all" ON anniversaries FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
+-- 信件的回复引用（存储被回复的原信 id 和内容）
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS reply_to JSONB DEFAULT NULL;
+
 -- 建索引
 CREATE INDEX idx_messages_to    ON messages(to_id, created_at DESC);
 CREATE INDEX idx_messages_from  ON messages(from_id);

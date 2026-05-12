@@ -763,6 +763,42 @@ a{color:inherit;text-decoration:none}
 .reply-actions{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:8px}
 .reply-cancel{font-size:13px;color:var(--ink-muted);cursor:pointer}
 
+/* Quoted original message in reply */
+.msg-quote{
+  margin-top:10px;padding:10px 14px;
+  background:rgba(0,0,0,0.025);border-left:3px solid #D0C8B8;
+  border-radius:0 4px 4px 0;
+  font-size:13px;line-height:1.6;color:var(--ink-muted);
+  font-style:italic;white-space:pre-wrap;word-break:break-word;
+  position:relative;z-index:1;
+}
+
+/* Sent letters tab */
+.sent-tabs{display:flex;gap:0;margin-bottom:18px;border-radius:var(--radius-full);background:var(--paper-2);padding:3px;position:relative;z-index:1}
+.sent-tab{flex:1;text-align:center;padding:10px 16px;border-radius:var(--radius-full);font-size:14px;color:var(--ink-muted);cursor:pointer;transition:all .25s}
+.sent-tab.active{background:#FFF;color:var(--chocolate);font-weight:600;box-shadow:var(--shadow-sm)}
+
+/* Sent letter card */
+.sent-letter-card{
+  background:linear-gradient(180deg,#FFFDF5 0%,#FFFAEF 100%);
+  border-radius:4px;padding:18px 16px;margin-bottom:12px;
+  box-shadow:0 1px 0 #E0D5C0,0 2px 8px rgba(139,115,85,0.05);
+  position:relative;
+}
+.sent-letter-card .sent-to{font-size:12px;color:var(--ink-muted);margin-bottom:8px}
+.sent-letter-card .sent-text{font-size:14px;line-height:1.7;color:var(--ink);font-family:var(--font-display);white-space:pre-wrap;word-break:break-word}
+.sent-letter-card .sent-time{font-size:11px;color:var(--ink-muted);margin-top:8px;display:block}
+
+/* Treehole replied bottles */
+.th-section-title{font-size:13px;color:var(--ink-muted);text-align:center;margin:20px 0 12px;display:block}
+.th-replied-bottle{
+  background:rgba(255,255,255,0.6);border-radius:8px;padding:14px 16px;margin-bottom:10px;
+  text-align:left;box-shadow:var(--shadow-sm);
+}
+.th-replied-bottle .th-reply-label{font-size:11px;color:var(--caramel);font-weight:600;margin-bottom:4px}
+.th-replied-bottle .th-reply-content{font-size:14px;line-height:1.6;color:var(--ink);font-family:var(--font-display);white-space:pre-wrap;word-break:break-word}
+.th-replied-bottle .th-reply-time{font-size:11px;color:var(--ink-muted);margin-top:6px;display:block}
+
 /* ============================================
    RESPONSIVE
    ============================================ */
@@ -900,6 +936,7 @@ a{color:inherit;text-decoration:none}
         <button class="btn btn-sage" onclick="Treehole.drop()">🫧 放入漂流瓶</button>
         <button class="btn btn-primary" id="btnPickBottle" onclick="Treehole.pick()" disabled style="opacity:0.4">🔍 取出漂流瓶</button>
       </div>
+      <div id="sentBottles" style="display:none"></div>
     </div>
   </section>
 
@@ -907,25 +944,32 @@ a{color:inherit;text-decoration:none}
   <section id="view-write-letter" class="view">
     <div class="back-btn" data-nav="home">← 庭院</div>
     <div style="padding:60px 16px 30px;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh">
-      <div class="letter-paper" style="flex:1;display:flex;flex-direction:column">
-        <div>
-          <span class="letter-to">致 <span id="letterPartnerName"></span> <span id="letterPartnerEmoji"></span></span>
-          <div class="letter-hr"></div>
-        </div>
-        <textarea class="letter-body" id="letterText" placeholder="写下你想说的话..." maxlength="500"></textarea>
-        <div class="letter-img-preview" id="letterImgPreview" style="display:none">
-          <img id="letterImgPreviewSrc" src="" alt="">
-          <span class="letter-img-remove" onclick="WriteLetter.removeImage()">✕</span>
-        </div>
-        <span class="letter-sign" id="letterSign"></span>
+      <div class="sent-tabs" id="letterTabs">
+        <div class="sent-tab active" onclick="WriteLetter.switchTab('write')">✎ 写信</div>
+        <div class="sent-tab" onclick="WriteLetter.switchTab('sent')">📤 已发送</div>
       </div>
-      <div class="letter-bar">
-        <div class="add-photo" onclick="WriteLetter.triggerImage()">
-          <span>📷</span><span id="photoBtnLabel">加照片</span>
+      <div id="writeForm" style="flex:1;display:flex;flex-direction:column;min-height:0">
+        <div class="letter-paper" style="flex:1;display:flex;flex-direction:column">
+          <div>
+            <span class="letter-to">致 <span id="letterPartnerName"></span> <span id="letterPartnerEmoji"></span></span>
+            <div class="letter-hr"></div>
+          </div>
+          <textarea class="letter-body" id="letterText" placeholder="写下你想说的话..." maxlength="500"></textarea>
+          <div class="letter-img-preview" id="letterImgPreview" style="display:none">
+            <img id="letterImgPreviewSrc" src="" alt="">
+            <span class="letter-img-remove" onclick="WriteLetter.removeImage()">✕</span>
+          </div>
+          <span class="letter-sign" id="letterSign"></span>
         </div>
-        <button class="btn btn-primary send-btn" onclick="WriteLetter.send()">🚩 投进信箱</button>
-        <input type="file" accept="image/*" id="letterFileInput" style="display:none" onchange="WriteLetter.handleImage(event)">
+        <div class="letter-bar">
+          <div class="add-photo" onclick="WriteLetter.triggerImage()">
+            <span>📷</span><span id="photoBtnLabel">加照片</span>
+          </div>
+          <button class="btn btn-primary send-btn" onclick="WriteLetter.send()">🚩 投进信箱</button>
+          <input type="file" accept="image/*" id="letterFileInput" style="display:none" onchange="WriteLetter.handleImage(event)">
+        </div>
       </div>
+      <div id="sentList" style="display:none;flex:1;overflow-y:auto;min-height:0"></div>
     </div>
   </section>
 
@@ -1350,9 +1394,10 @@ const Photowall = {
 // TREE HOLE
 // ============================================
 const Treehole = {
-  bottle: null,
+  bottle: null, sentBottles: [],
   async onShow() { await this.check(); },
   async check() {
+    // 收到的漂流瓶
     const { data } = await supabase.from('treeholes')
       .select('*').eq('to_id', S.userId).eq('status', 'waiting')
       .order('created_at', { ascending: false }).limit(1);
@@ -1369,6 +1414,25 @@ const Treehole = {
       st.textContent = '树洞里空空的'; st.className = 'th-status-text idle';
       btn.disabled = true; btn.style.opacity = '0.4';
     }
+    // 自己发出的、已被回复的漂流瓶
+    const { data: sent } = await supabase.from('treeholes')
+      .select('*').eq('from_id', S.userId).eq('status', 'replied')
+      .order('created_at', { ascending: false });
+    this.sentBottles = sent || [];
+    this.renderSent();
+  },
+  renderSent() {
+    const container = document.getElementById('sentBottles');
+    if (this.sentBottles.length === 0) { container.style.display = 'none'; return; }
+    container.style.display = 'block';
+    container.innerHTML = '<span class="th-section-title">—— 你发出的漂流瓶 ——</span>' +
+      this.sentBottles.map(b => `
+        <div class="th-replied-bottle">
+          <div class="th-reply-label">🫧 TA 回复了：</div>
+          <div class="th-reply-content">${escapeHtml(b.reply)}</div>
+          <span class="th-reply-time">${relTime(b.created_at)}</span>
+        </div>
+      `).join('');
   },
   drop() {
     Modal.open(`
@@ -1430,7 +1494,7 @@ const Treehole = {
 // WRITE LETTER
 // ============================================
 const WriteLetter = {
-  imageFile: null,
+  imageFile: null, currentTab: 'write',
   onShow() {
     this.imageFile = null;
     if (this._objectUrl) { URL.revokeObjectURL(this._objectUrl); this._objectUrl = null; }
@@ -1440,6 +1504,35 @@ const WriteLetter = {
     document.getElementById('letterPartnerName').textContent = S.partnerName;
     document.getElementById('letterPartnerEmoji').textContent = S.partnerEmoji;
     document.getElementById('letterSign').textContent = S.myEmoji + ' ' + S.myName;
+    this.switchTab('write');
+  },
+  switchTab(tab) {
+    this.currentTab = tab;
+    document.querySelectorAll('#letterTabs .sent-tab').forEach((t, i) => {
+      t.classList.toggle('active', (i === 0 && tab === 'write') || (i === 1 && tab === 'sent'));
+    });
+    document.getElementById('writeForm').style.display = tab === 'write' ? 'flex' : 'none';
+    document.getElementById('sentList').style.display = tab === 'sent' ? 'block' : 'none';
+    if (tab === 'sent') this.loadSent();
+  },
+  async loadSent() {
+    const container = document.getElementById('sentList');
+    container.innerHTML = '<p style="text-align:center;color:var(--ink-muted);padding:40px 0">加载中...</p>';
+    const { data } = await supabase.from('messages')
+      .select('*').eq('from_id', S.userId).order('created_at', { ascending: false });
+    const letters = data || [];
+    if (letters.length === 0) {
+      container.innerHTML = '<div class="empty-state"><span class="empty-icon">📮</span><span class="empty-title">还没有写过信</span><span class="empty-desc">写第一封信给TA吧</span></div>';
+      return;
+    }
+    container.innerHTML = letters.map(m => `
+      <div class="sent-letter-card">
+        <div class="sent-to">寄给 ${S.partnerEmoji} ${S.partnerName}</div>
+        <div class="sent-text">${escapeHtml(m.content)}</div>
+        ${m.image_url ? `<img src="${m.image_url}" style="width:100%;max-height:160px;object-fit:cover;border-radius:4px;margin-top:8px">` : ''}
+        <span class="sent-time">${relTime(m.created_at)}</span>
+      </div>
+    `).join('');
   },
   triggerImage() { document.getElementById('letterFileInput').click(); },
   handleImage(e) {
@@ -1513,6 +1606,7 @@ const ReadLetters = {
       <div class="msg-card ${m.is_read ? '' : 'unread'}">
         ${!m.is_read ? '<span class="unread-dot"></span>' : ''}
         <div class="msg-text">${escapeHtml(m.content)}</div>
+        ${m.reply_to ? `<div class="msg-quote">${escapeHtml(m.reply_to.content)}</div>` : ''}
         ${m.image_url ? `<div class="msg-image" onclick="viewImage('${m.image_url}')"><img src="${m.image_url}" alt="" loading="lazy"><span class="tap-hint" style="position:absolute;bottom:6px;right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,0.4);padding:2px 8px;border-radius:4px">点击查看大图</span></div>` : ''}
         <div class="msg-footer">
           <span class="msg-time">${m.timeStr}</span>
@@ -1540,7 +1634,8 @@ const ReadLetters = {
     const msg = this.letters.find(m => m.id === originalMsgId);
     await supabase.from('messages').insert({
       from_id: S.userId, to_id: msg.from_id, content: text,
-      image_url: '', is_read: false, created_at: new Date()
+      image_url: '', is_read: false, created_at: new Date(),
+      reply_to: {id: msg.id, content: msg.content}
     });
     toast('回信已投递', 'success');
     this.replyingTo = null;

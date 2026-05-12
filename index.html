@@ -957,20 +957,18 @@ a{color:inherit;text-decoration:none}
   <span class="anniversary-hint">点击关闭</span>
 </div>
 
-<!-- ===== SUPABASE SDK ===== -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
 /* ============================================
    树屋庭院 — Application Logic
+   立即执行，不依赖外部 CDN
    ============================================ */
 
-// ----- CONFIG (replace with your Supabase credentials) -----
+// ----- CONFIG -----
 const SUPABASE_URL = 'https://ficqxehpxrcowfgvsgec.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpY3F4ZWhweHJjb3dmZ3ZzZ2VjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1NjU5ODgsImV4cCI6MjA5NDE0MTk4OH0.m7ZE5425S3uwPw1b8NyTtb1LyzocfxJPgWYOo56AJMA';
 
-// ----- Supabase Client -----
-const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ----- Supabase Client (set after SDK loads) -----
+var supabase = null;
 
 // ----- State -----
 const S = {
@@ -1580,16 +1578,25 @@ function viewImage(url) {
 }
 
 // ============================================
-// INIT
+// INIT — 页面打开即显示登录页，后台加载 SDK
 // ============================================
-document.addEventListener('DOMContentLoaded', async () => {
-  if (!supabase) {
-    Login.init();
-    document.getElementById('loginError').textContent = 'Supabase 未配置，请按 README 完成部署步骤';
-    document.getElementById('loginError').classList.add('show');
-    return;
-  }
+Login.init();
 
+// 动态加载 Supabase SDK，不阻塞页面
+(function loadSupabaseSDK() {
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  script.onload = initSupabase;
+  script.onerror = function() {
+    console.warn('Supabase SDK failed to load');
+    document.getElementById('loginError').textContent = '网络连接失败，请刷新重试';
+    document.getElementById('loginError').classList.add('show');
+  };
+  document.head.appendChild(script);
+})();
+
+async function initSupabase() {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
@@ -1610,12 +1617,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (e) {
     console.warn('Session check failed:', e);
   }
-  Login.init();
-});
+}
 
-// Logout helper (exposed for potential use)
+// Logout helper
 function logout() {
-  supabase.auth.signOut();
+  if (supabase) supabase.auth.signOut();
   S.session = null; S.userId = null;
   S.viewStack = [];
   Login.init();

@@ -336,8 +336,8 @@ a{color:inherit;text-decoration:none}
 .sky-indicator{position:absolute;top:max(6%,env(safe-area-inset-top,6%));right:8%;z-index:10;font-size:42px;filter:drop-shadow(0 0 10px rgba(255,215,0,0.5))}
 
 .actor{position:absolute;z-index:5;pointer-events:none}
-.actor.rabbit{top:38%;left:50%;width:27vw;max-width:130px;height:auto}
-.actor.fox{top:38%;left:65%;width:27vw;max-width:130px;height:auto}
+.actor.rabbit{top:38%;left:50%;width:27vw;max-width:130px;aspect-ratio:1;object-fit:contain}
+.actor.fox{top:38%;left:65%;width:27vw;max-width:130px;aspect-ratio:1;object-fit:contain}
 
 .mailbox{position:absolute;z-index:8}
 .mailbox img{width:100%;height:auto;display:block}
@@ -987,6 +987,7 @@ function navigateTo(view, pushStack = true) {
   setTimeout(() => {
     if (prev) prev.classList.remove('fade-out');
     next.classList.add('active');
+    window.scrollTo(0, 0);
     if (pushStack && S.currentView !== view) { S.viewStack.push(S.currentView); }
     S.currentView = view;
     // Lifecycle

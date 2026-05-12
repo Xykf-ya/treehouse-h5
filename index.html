@@ -1063,6 +1063,12 @@ const Login = {
     document.getElementById('loginError').classList.remove('show');
     document.getElementById('pwdInput').value = '';
     this.selectedRole = null;
+    // JS 事件监听兜底，防止移动端 onclick 属性失效
+    document.querySelectorAll('.role-card').forEach(card => {
+      card.addEventListener('click', function(e) {
+        Login.selectRole(this.dataset.role);
+      });
+    });
   },
   selectRole(role) {
     this.selectedRole = role;

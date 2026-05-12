@@ -1087,7 +1087,7 @@ const Login = {
     const btn = document.getElementById('loginBtn');
     btn.textContent = '正在进入...'; btn.disabled = true;
 
-    const email = this.selectedRole === 'rabbit' ? 'bunny@treehouse.local' : 'fox@treehouse.local';
+    const email = this.selectedRole === 'rabbit' ? 'pengshixuan@zju.edu.cn' : 'miehihi6672@outlook.com';
     const { data, error } = await supabase.auth.signInWithPassword({ email, password: pwd });
 
     if (error) {

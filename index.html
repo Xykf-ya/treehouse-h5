@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>树屋庭院</title>
+<style>
+/* ============================================
+   树屋庭院 — Enchanted Papercraft Design System
+   ============================================ */
+
+/* ----- Design Tokens ----- */
+:root {
+  --ink:       #2C2420;
+  --ink-light: #5C4A42;
+  --ink-muted: #8B7B72;
+  --paper:     #FDF9F2;
+  --paper-2:   #F8F2E8;
+  --paper-3:   #F2E8D8;
+  --cream:     #FFFAF4;
+  --chocolate: #4A3226;
+  --caramel:   #C87D3E;
+  --honey:     #E0B060;
+  --honey-light:#F0D090;
+  --rose:      #C47A6E;
+  --rose-light:#E8C0B8;
+  --sage:      #6B8B6D;
+  --sage-light:#A0C0A2;
+  --moss:      #4A6B4C;
+  --chalkboard:#2A3E2A;
+  --chalk-w:   #F0ECD8;
+  --chalk-o:   #FFA060;
+  --frame-wood:#6B4226;
+  --gold:      #C8A050;
+  --gold-light:#E8D090;
+
+  --font-display: 'STKaiti','KaiTi','楷体','Noto Serif SC','Songti SC',serif;
+  --font-body:    'STKaiti','KaiTi','楷体','Noto Serif SC','Songti SC',serif;
+  --font-decor:   'Georgia','Times New Roman',serif;
+
+  --shadow-sm:    0 1px 3px rgba(44,36,32,0.06), 0 1px 2px rgba(44,36,32,0.04);
+  --shadow-md:    0 3px 16px rgba(44,36,32,0.08), 0 1px 4px rgba(44,36,32,0.04);
+  --shadow-lg:    0 6px 32px rgba(44,36,32,0.12), 0 2px 8px rgba(44,36,32,0.06);
+  --shadow-xl:    0 12px 48px rgba(44,36,32,0.16), 0 4px 16px rgba(44,36,32,0.08);
+  --shadow-glow:  0 0 40px rgba(200,128,60,0.25), 0 0 80px rgba(200,160,80,0.12);
+  --shadow-inner: inset 0 2px 8px rgba(0,0,0,0.08);
+
+  --radius-sm: 6px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  --ease-out:   cubic-bezier(0.16,1,0.3,1);
+  --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+  --ease-in-out: cubic-bezier(0.65,0,0.35,1);
+}
+
+/* ----- Reset ----- */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
+body{
+  font-family:var(--font-body);
+  color:var(--ink);
+  background:var(--paper);
+  min-height:100vh;min-height:100dvh;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+button,input,textarea{font-family:inherit;font-size:inherit;color:inherit;border:none;background:none;outline:none}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+textarea{resize:none;display:block}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+
+/* ----- App Shell ----- */
+#app{
+  width:100%;
+  min-height:100vh;min-height:100dvh;
+  position:relative;
+  overflow-x:hidden;
+}
+@media(min-width:480px){
+  #app{
+    max-width:430px;
+    margin:0 auto;
+    box-shadow:0 0 80px rgba(44,36,32,0.15);
+    border-left:1px solid rgba(0,0,0,0.04);
+    border-right:1px solid rgba(0,0,0,0.04);
+  }
+}
+
+/* ----- View Management ----- */
+.view{position:absolute;top:0;left:0;width:100%;min-height:100vh;min-height:100dvh;opacity:0;pointer-events:none;transition:opacity .35s var(--ease-out)}
+.view.active{position:relative;opacity:1;pointer-events:auto;z-index:1}
+.view.fade-out{opacity:0;transition:opacity .2s var(--ease-out)}
+
+/* ============================================
+   SHARED COMPONENTS
+   ============================================ */
+
+/* Paper texture background */
+.paper-bg{
+  background:
+    linear-gradient(180deg,var(--cream) 0%,var(--paper) 30%,var(--paper-2) 100%);
+  position:relative;
+}
+.paper-bg::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  background-size:256px;
+  opacity:0.5;
+}
+
+/* Back button */
+.back-btn{
+  position:fixed;top:max(20px,env(safe-area-inset-top,20px));left:16px;z-index:50;
+  display:inline-flex;align-items:center;gap:4px;
+  padding:8px 16px;
+  background:rgba(255,255,255,0.75);backdrop-filter:blur(8px);
+  border-radius:var(--radius-full);
+  font-size:14px;color:var(--ink-light);
+  box-shadow:var(--shadow-sm);
+  transition:all .25s var(--ease-out);
+}
+.back-btn:hover{background:rgba(255,255,255,0.9);box-shadow:var(--shadow-md)}
+.back-btn:active{transform:scale(0.96)}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:12px 28px;border-radius:var(--radius-full);
+  font-size:15px;font-weight:600;
+  transition:all .3s var(--ease-out);
+  position:relative;overflow:hidden;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--caramel) 0%,#B87030 100%);
+  color:#FFF;box-shadow:0 2px 12px rgba(200,125,60,0.3);
+}
+.btn-primary:hover{box-shadow:0 4px 20px rgba(200,125,60,0.45);transform:translateY(-1px)}
+.btn-primary:active{transform:scale(0.97);box-shadow:0 1px 6px rgba(200,125,60,0.3)}
+
+.btn-outline{
+  background:transparent;color:var(--caramel);
+  border:1.5px solid var(--caramel);
+}
+.btn-outline:hover{background:rgba(200,125,60,0.06)}
+.btn-outline:active{transform:scale(0.97)}
+
+.btn-ghost{color:var(--ink-muted);padding:8px 16px;font-weight:400}
+.btn-ghost:hover{color:var(--ink-light);background:rgba(0,0,0,0.03)}
+
+.btn-sage{background:linear-gradient(135deg,var(--sage) 0%,var(--moss) 100%);color:#FFF;box-shadow:0 2px 12px rgba(107,139,109,0.3)}
+.btn-sage:hover{box-shadow:0 4px 20px rgba(107,139,109,0.45);transform:translateY(-1px)}
+.btn-sage:active{transform:scale(0.97)}
+
+.btn-sm{padding:8px 18px;font-size:13px}
+.btn-lg{padding:16px 36px;font-size:17px}
+
+/* Toast */
+#toast{
+  position:fixed;top:max(60px,env(safe-area-inset-top,60px));left:50%;transform:translateX(-50%) translateY(-20px);
+  z-index:999;
+  padding:10px 24px;border-radius:var(--radius-full);
+  background:var(--ink);color:#FFF;
+  font-size:14px;box-shadow:var(--shadow-lg);
+  opacity:0;transition:all .35s var(--ease-out);
+  pointer-events:none;white-space:nowrap;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.success{background:var(--moss)}
+#toast.error{background:var(--rose)}
+
+/* Modal overlay */
+.modal-overlay{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(44,36,32,0.5);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .3s var(--ease-out);
+}
+.modal-overlay.open{opacity:1;pointer-events:auto}
+
+.modal-sheet{
+  background:var(--paper);
+  border-radius:var(--radius-xl);
+  padding:28px 24px;
+  width:calc(100% - 48px);max-width:380px;
+  box-shadow:var(--shadow-xl),0 0 0 1px rgba(0,0,0,0.04);
+  transform:translateY(12px) scale(0.97);
+  transition:transform .4s var(--ease-spring);
+}
+.modal-overlay.open .modal-sheet{transform:translateY(0) scale(1)}
+
+.modal-title{font-size:18px;font-weight:700;color:var(--chocolate);margin-bottom:16px;display:block}
+.modal-textarea{
+  width:100%;min-height:140px;
+  background:var(--paper-2);border-radius:var(--radius-md);
+  padding:14px 16px;font-size:15px;line-height:1.7;
+  border:1px solid transparent;
+  transition:border-color .25s,border-color .25s;
+}
+.modal-textarea:focus{border-color:var(--caramel);background:var(--cream)}
+.modal-btns{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
+
+/* Empty state */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;
+  padding:60px 20px;text-align:center;
+}
+.empty-icon{font-size:64px;margin-bottom:12px;opacity:0.7}
+.empty-title{font-size:16px;color:var(--ink-light);margin-bottom:4px}
+.empty-desc{font-size:13px;color:var(--ink-muted)}
+
+/* Loading */
+.loading-inline{
+  display:flex;flex-direction:column;align-items:center;padding:60px 20px;
+  color:var(--ink-muted);font-size:14px;gap:12px;
+}
+.spinner{
+  width:28px;height:28px;border:2.5px solid var(--paper-3);
+  border-top-color:var(--caramel);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ============================================
+   PAGE 0 — LOGIN
+   ============================================ */
+#view-login{
+  background:linear-gradient(175deg,#F5EDE0 0%,#EDE0D0 40%,#E5D5C0 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 24px;min-height:100vh;min-height:100dvh;
+  position:relative;overflow:hidden;
+}
+#view-login::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 30%,rgba(232,184,96,0.15) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 70%,rgba(196,122,110,0.08) 0%,transparent 50%),
+             radial-gradient(ellipse at 20% 60%,rgba(107,139,109,0.06) 0%,transparent 50%);
+}
+#view-login::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.025'/%3E%3C/svg%3E");
+  background-size:200px;
+}
+
+.login-inner{position:relative;z-index:1;width:100%;max-width:340px;text-align:center}
+
+/* Hero */
+.login-hero{margin-bottom:44px}
+.login-tree{font-size:72px;display:block;margin-bottom:8px;animation:treeFloat 3s ease-in-out infinite}
+@keyframes treeFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.login-title{font-size:32px;font-weight:700;color:var(--chocolate);font-family:var(--font-display);letter-spacing:2px}
+.login-sub{
+  font-size:14px;color:var(--ink-muted);margin-top:6px;
+  font-family:var(--font-decor);font-style:italic;letter-spacing:0.5px;
+}
+
+/* Decorative divider */
+.login-divider{
+  width:60px;height:1px;background:linear-gradient(90deg,transparent,var(--caramel),transparent);
+  margin:0 auto 36px;opacity:0.5;
+}
+
+/* Role cards */
+.role-cards{display:flex;gap:14px;margin-bottom:28px}
+.role-card{
+  flex:1;padding:28px 14px 22px;border-radius:var(--radius-lg);
+  background:var(--cream);cursor:pointer;
+  box-shadow:var(--shadow-sm);
+  border:2px solid transparent;
+  transition:all .35s var(--ease-out);
+  position:relative;text-align:center;
+}
+.role-card:hover{border-color:rgba(200,128,60,0.3);box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.role-card.selected{
+  border-color:var(--caramel);
+  box-shadow:var(--shadow-glow),0 0 0 4px rgba(200,128,60,0.08);
+  background:linear-gradient(135deg,#FFF8EF 0%,#FFF3E4 100%);
+  transform:translateY(-2px);
+}
+.role-emoji{font-size:52px;display:block;margin-bottom:10px;transition:transform .35s var(--ease-spring)}
+.role-card.selected .role-emoji{transform:scale(1.15)}
+.role-name{font-size:15px;font-weight:600;color:var(--chocolate);display:block}
+.role-card.selected .role-name{color:var(--caramel)}
+.role-check{
+  position:absolute;top:10px;right:14px;
+  width:22px;height:22px;border-radius:50%;
+  background:var(--caramel);color:#FFF;
+  font-size:13px;display:flex;align-items:center;justify-content:center;
+  opacity:0;transform:scale(0);
+  transition:all .35s var(--ease-spring);
+}
+.role-card.selected .role-check{opacity:1;transform:scale(1)}
+
+/* Password field */
+.pwd-wrap{
+  overflow:hidden;max-height:0;opacity:0;
+  transition:all .45s var(--ease-out);
+  margin-bottom:0;
+}
+.pwd-wrap.visible{max-height:200px;opacity:1;margin-bottom:24px}
+.pwd-input{
+  width:100%;padding:14px 18px;
+  background:var(--cream);border-radius:var(--radius-full);
+  border:1.5px solid var(--paper-3);
+  font-size:16px;text-align:center;letter-spacing:4px;
+  color:var(--ink);
+  transition:all .25s;
+}
+.pwd-input:focus{border-color:var(--caramel);box-shadow:0 0 0 4px rgba(200,128,60,0.06)}
+.pwd-input::placeholder{color:var(--ink-muted);letter-spacing:0;font-size:14px}
+
+/* Login button */
+.login-btn-wrap{opacity:0;transform:translateY(8px);transition:all .45s var(--ease-out);pointer-events:none}
+.login-btn-wrap.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+
+/* Error */
+.login-error{
+  margin-top:12px;font-size:13px;color:var(--rose);
+  opacity:0;transition:opacity .3s;
+}
+.login-error.show{opacity:1}
+
+/* ============================================
+   PAGE 1 — COURTYARD (HOME)
+   ============================================ */
+#view-home{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;background:#2d3561}
+.scene-bg{
+  position:absolute;inset:0;
+  width:100%;height:100%;object-fit:cover;z-index:1;
+}
+
+.sky-indicator{position:absolute;top:max(6%,env(safe-area-inset-top,6%));right:8%;z-index:10;font-size:42px;filter:drop-shadow(0 0 10px rgba(255,215,0,0.5))}
+
+.actor{position:absolute;z-index:5;pointer-events:none}
+.actor.rabbit{top:38%;left:50%;width:27vw;max-width:130px;height:auto}
+.actor.fox{top:38%;left:65%;width:27vw;max-width:130px;height:auto}
+
+.mailbox{position:absolute;z-index:8}
+.mailbox img{width:100%;height:auto;display:block}
+.mailbox.white{bottom:20%;left:15%;width:24vw;max-width:110px}
+.mailbox.orange{bottom:20%;right:16%;width:24vw;max-width:110px}
+/* Unread flag animation */
+.mailbox-has-mail{animation:flagWave 1.2s ease-in-out infinite}
+@keyframes flagWave{0%,100%{transform:rotate(0)}25%{transform:rotate(2deg)}75%{transform:rotate(-2deg)}}
+.mail-new-dot{
+  position:absolute;top:-4px;right:-4px;width:14px;height:14px;
+  background:var(--rose);border-radius:50%;border:2px solid #FFF;
+  box-shadow:0 0 8px rgba(196,122,110,0.6);
+}
+
+/* Hitboxes */
+.hitbox{position:absolute;z-index:6;cursor:pointer}
+.hitbox:active{filter:brightness(1.2)}
+.door-hitbox{top:38%;left:50%;transform:translateX(-50%);width:19vw;max-width:90px;height:27vw;max-height:130px}
+.sign-hitbox{top:55%;left:28%;width:13vw;max-width:64px;height:12vw;max-height:58px}
+.treehole-hitbox{top:65%;left:40%;width:13vw;max-width:64px;height:24vw;max-height:116px}
+
+/* Inbox/outbox labels */
+.mailbox-label{
+  position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);
+  font-size:11px;color:rgba(255,255,255,0.7);
+  white-space:nowrap;pointer-events:none;
+  text-shadow:0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* User indicator */
+.user-chip{
+  position:absolute;top:max(6%,env(safe-area-inset-top,6%));left:16px;z-index:10;
+  padding:6px 14px;border-radius:var(--radius-full);
+  background:rgba(255,255,255,0.25);backdrop-filter:blur(8px);
+  font-size:13px;color:#FFF;text-shadow:0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Logout link (subtle, bottom center of courtyard) */
+.logout-link{
+  position:absolute;bottom:max(12px,env(safe-area-inset-bottom,12px));left:50%;transform:translateX(-50%);z-index:10;
+  padding:4px 12px;border-radius:var(--radius-full);
+  font-size:11px;color:rgba(255,255,255,0.3);
+  cursor:pointer;transition:color .25s;
+}
+.logout-link:hover{color:rgba(255,255,255,0.7)}
+
+/* ============================================
+   PAGE 2 — BLACKBOARD
+   ============================================ */
+#view-blackboard{
+  position:fixed;inset:0;z-index:30;
+  background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;
+}
+
+.blackboard-frame{
+  width:min(88vw,380px);aspect-ratio:1;max-height:80vh;
+  position:relative;
+}
+
+/* Wood frame */
+.wood-frame{
+  position:absolute;inset:-10px;border-radius:18px;
+  background:linear-gradient(165deg,#7B5230 0%,#6B4226 20%,#5C3A20 40%,#6B4226 60%,#7B5230 80%,#6B4226 100%);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.wood-frame::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background:repeating-linear-gradient(
+    90deg,transparent,transparent 4px,rgba(0,0,0,0.03) 4px,rgba(0,0,0,0.03) 5px
+  );
+}
+
+/* Chalkboard surface */
+.blackboard-inner{
+  position:absolute;inset:10px;border-radius:12px;
+  background:
+    radial-gradient(ellipse at 50% 30%,#3A5A3A 0%,var(--chalkboard) 60%,#1E301E 100%);
+  display:flex;flex-direction:column;
+  box-shadow:inset 0 2px 16px rgba(0,0,0,0.3);
+  overflow:hidden;
+}
+.blackboard-inner::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  background-size:150px;border-radius:inherit;
+}
+
+.board-title{
+  text-align:center;padding:14px 0 8px;
+  font-size:13px;color:rgba(255,255,255,0.25);
+  font-family:var(--font-display);letter-spacing:4px;
+  position:relative;z-index:1;
+}
+
+/* Chalk messages */
+.chalk-list{
+  flex:1;padding:0 24px;overflow-y:auto;
+  position:relative;z-index:1;
+  scroll-behavior:smooth;
+}
+.chalk-msg{
+  margin-bottom:16px;padding:6px 10px;
+  border-radius:6px;position:relative;
+  transition:background .2s;
+}
+.chalk-msg.erasable{
+  border:1.5px dashed rgba(255,255,255,0.2);
+  cursor:pointer;
+}
+.chalk-msg.erasable:hover{background:rgba(255,80,80,0.1)}
+.chalk-text{
+  display:block;
+  font-family:var(--font-display);
+  font-size:17px;line-height:1.7;letter-spacing:1px;
+  text-shadow:0 1px 2px rgba(0,0,0,0.3);
+  word-break:break-word;
+}
+.chalk-w{color:var(--chalk-w)}
+.chalk-o{color:var(--chalk-o)}
+.chalk-meta{display:flex;justify-content:space-between;margin-top:3px}
+.chalk-author{font-size:11px;color:rgba(255,255,255,0.3)}
+.chalk-time{font-size:10px;color:rgba(255,255,255,0.2)}
+.erase-mark{
+  position:absolute;top:-6px;right:-6px;
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(255,60,60,0.85);color:#FFF;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;box-shadow:0 2px 8px rgba(255,60,60,0.3);
+}
+
+/* Chalk toolbar */
+.chalk-bar{
+  display:flex;position:relative;z-index:1;
+  border-top:1px solid rgba(255,255,255,0.08);
+}
+.chalk-tool{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:12px 0 14px;font-size:12px;color:rgba(255,255,255,0.45);
+  transition:all .25s;
+}
+.chalk-tool:first-child{border-right:1px solid rgba(255,255,255,0.08)}
+.chalk-tool.active{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.9)}
+.chalk-tool-emoji{font-size:20px;margin-bottom:2px}
+
+/* Chalk write modal */
+.chalk-modal-sheet{background:linear-gradient(165deg,#3D503D,#354535);border:2px solid rgba(255,255,255,0.1);color:#E8E0D0;margin:-28px -24px;border-radius:inherit;padding:28px 24px}
+.chalk-modal-sheet .modal-title{color:#E8D8B0;font-family:var(--font-display)}
+.chalk-modal-sheet .modal-textarea{background:rgba(0,0,0,0.2);color:#E8E0D0;border-color:rgba(255,255,255,0.1)}
+.chalk-modal-sheet .modal-textarea:focus{border-color:rgba(255,255,255,0.25);background:rgba(0,0,0,0.3)}
+
+/* ============================================
+   PAGE 3 — PHOTO WALL
+   ============================================ */
+#view-photowall{
+  position:fixed;inset:0;z-index:30;
+  background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;
+}
+
+.photo-wall-card{
+  width:min(90vw,380px);max-height:78vh;
+  background:var(--paper);
+  border-radius:var(--radius-xl);
+  padding:24px 20px 20px;
+  box-shadow:var(--shadow-xl);
+  overflow-y:auto;
+  position:relative;
+}
+.photo-wall-card::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,0.01) 100%);
+}
+
+.pw-title{font-size:18px;font-weight:700;color:var(--chocolate);margin-bottom:18px;display:block;text-align:center}
+
+/* Photo grid */
+.photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.photo-card{
+  border-radius:var(--radius-md);overflow:hidden;
+  background:var(--cream);
+  box-shadow:var(--shadow-sm);cursor:pointer;
+  transition:all .3s var(--ease-out);
+  position:relative;
+  aspect-ratio:0.85;
+}
+.photo-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.photo-card:active{transform:scale(0.97)}
+.photo-card img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-card .photo-meta{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:8px 10px;
+  background:linear-gradient(transparent,rgba(0,0,0,0.5));
+  color:#FFF;font-size:11px;
+  display:flex;justify-content:space-between;
+}
+.photo-pin{position:absolute;top:-4px;right:8px;font-size:18px;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.2))}
+
+/* Photo preview modal */
+.preview-img-wrap{
+  width:100%;max-height:360px;border-radius:var(--radius-md);
+  overflow:hidden;margin-bottom:16px;
+}
+.preview-img-wrap img{width:100%;height:100%;object-fit:contain;display:block;background:#1a1a1a}
+
+.comment-section{margin-bottom:14px}
+.comment-title{font-size:14px;font-weight:600;color:var(--chocolate);margin-bottom:10px;display:block}
+.comment-list{max-height:160px;overflow-y:auto;margin-bottom:10px}
+.comment-item{padding:8px 0;border-bottom:1px solid var(--paper-3);font-size:13px}
+.comment-item .c-author{color:var(--caramel);font-weight:600;display:block;font-size:11px}
+.comment-item .c-text{color:var(--ink-light);margin-top:2px;display:block;line-height:1.5}
+.no-comments{font-size:12px;color:var(--ink-muted);text-align:center;padding:12px 0}
+
+/* Anniversary card */
+.anniversary-pop{
+  position:fixed;top:max(30px,env(safe-area-inset-top,30px));left:50%;transform:translateX(-50%) translateY(-30px);z-index:200;
+  background:linear-gradient(135deg,#FFF2D8,#FFE0A0);
+  color:var(--chocolate);padding:14px 28px;border-radius:var(--radius-full);
+  font-size:15px;font-weight:700;box-shadow:0 8px 40px rgba(200,160,80,0.4);
+  opacity:0;transition:all .5s var(--ease-spring);
+  white-space:nowrap;cursor:pointer;
+}
+.anniversary-pop.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.anniversary-hint{display:block;font-size:10px;color:var(--ink-muted);text-align:center;font-weight:400;margin-top:2px}
+
+/* ============================================
+   PAGE 4 — TREE HOLE
+   ============================================ */
+#view-treehole{
+  position:fixed;inset:0;z-index:30;
+  background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;
+}
+
+.treehole-card{
+  width:min(82vw,340px);
+  background:var(--paper);
+  border-radius:var(--radius-xl);
+  padding:36px 24px 28px;
+  box-shadow:var(--shadow-xl);
+  text-align:center;
+}
+
+.th-title{font-size:20px;font-weight:700;color:var(--chocolate);display:block;margin-bottom:4px}
+.th-desc{font-size:13px;color:var(--ink-muted);margin-bottom:28px;display:block}
+
+/* Tree hole visual */
+.treehole-visual{
+  display:flex;flex-direction:column;align-items:center;padding:32px 0;
+  position:relative;
+}
+.treehole-icon{
+  font-size:80px;display:block;
+  transition:all .6s;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+}
+.treehole-visual.glowing .treehole-icon{
+  animation:holeGlow 2s ease-in-out infinite;
+}
+@keyframes holeGlow{
+  0%,100%{filter:drop-shadow(0 0 8px rgba(255,200,60,0.3))}
+  50%{filter:drop-shadow(0 0 28px rgba(255,200,60,0.8)) drop-shadow(0 0 60px rgba(255,160,40,0.4))}
+}
+.th-status-text{font-size:14px;margin-top:10px;display:block;transition:color .4s}
+.th-status-text.glowing{color:var(--caramel);font-weight:600}
+.th-status-text.idle{color:var(--ink-muted)}
+
+/* Tree hole actions */
+.th-actions{display:flex;gap:10px;margin-top:8px}
+.th-actions .btn{flex:1}
+
+/* Drop bottle modal */
+.bottle-modal-sheet .modal-title{text-align:center}
+
+/* ============================================
+   PAGE 5 — WRITE LETTER
+   ============================================ */
+#view-write-letter{
+  min-height:100vh;min-height:100dvh;
+  background:var(--paper);
+}
+
+.letter-paper{
+  flex:1;
+  background:linear-gradient(180deg,#FFFDF5 0%,#FFFAEF 50%,#FFF6E5 100%);
+  border-radius:4px;
+  padding:32px 28px;
+  box-shadow:
+    0 1px 0 var(--paper-3),
+    0 3px 12px rgba(139,115,85,0.1);
+  position:relative;
+}
+/* Paper lines */
+.letter-paper::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(
+    0deg,transparent,transparent 32px,rgba(180,160,130,0.12) 32px,rgba(180,160,130,0.12) 33px
+  );
+  border-radius:inherit;
+}
+
+.letter-to{font-size:16px;font-weight:700;color:var(--chocolate);font-family:var(--font-display);margin-bottom:8px;display:block}
+.letter-hr{height:1px;background:linear-gradient(90deg,var(--paper-3),var(--paper-3) 60%,transparent);margin-bottom:20px}
+
+.letter-body{
+  width:100%;min-height:280px;flex:1;
+  font-size:16px;line-height:2;color:var(--ink);
+  font-family:var(--font-display);
+  background:transparent;border:none;
+}
+.letter-body::placeholder{color:var(--ink-muted);opacity:0.5;font-size:15px}
+
+/* Image preview inside letter */
+.letter-img-preview{
+  position:relative;margin:12px 0;border-radius:4px;overflow:hidden;
+}
+.letter-img-preview img{width:100%;max-height:200px;object-fit:cover;display:block;border-radius:4px}
+.letter-img-remove{
+  position:absolute;top:6px;right:6px;
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(0,0,0,0.45);color:#FFF;
+  font-size:16px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .2s;
+}
+.letter-img-remove:hover{background:rgba(0,0,0,0.65)}
+
+.letter-sign{
+  margin-top:24px;text-align:right;font-size:15px;
+  color:var(--ink-light);font-family:var(--font-display);
+  display:block;
+}
+
+/* Bottom bar */
+.letter-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 0;gap:12px;
+}
+.letter-bar .add-photo{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 18px;border-radius:var(--radius-full);
+  background:var(--paper-2);font-size:13px;color:var(--ink-light);
+  cursor:pointer;transition:all .25s;
+}
+.letter-bar .add-photo:hover{background:var(--paper-3)}
+.letter-bar .send-btn{padding:12px 32px}
+
+/* ============================================
+   PAGE 6 — READ LETTERS
+   ============================================ */
+#view-read-letters{
+  min-height:100vh;min-height:100dvh;
+  background:var(--paper);
+  padding:60px 16px 30px;
+}
+
+/* Letter card */
+.msg-card{
+  background:linear-gradient(180deg,#FFFDF5 0%,#FFFAEF 100%);
+  border-radius:4px;
+  padding:24px 22px;
+  margin-bottom:16px;
+  box-shadow:0 1px 0 #E0D5C0,0 3px 10px rgba(139,115,85,0.06);
+  position:relative;
+}
+.msg-card.unread{
+  border-left:4px solid var(--caramel);
+  padding-left:18px;
+}
+.msg-card::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(
+    0deg,transparent,transparent 34px,rgba(180,160,130,0.1) 34px,rgba(180,160,130,0.1) 35px
+  );
+  border-radius:inherit;
+}
+
+.unread-dot{
+  position:absolute;top:16px;right:16px;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--caramel);box-shadow:0 0 6px rgba(200,125,60,0.4);
+}
+
+.msg-text{
+  font-size:15px;line-height:1.8;color:var(--ink);
+  font-family:var(--font-display);
+  white-space:pre-wrap;word-break:break-word;
+  position:relative;z-index:1;
+}
+
+.msg-image{
+  margin:10px 0;border-radius:4px;overflow:hidden;position:relative;z-index:1;
+}
+.msg-image img{width:100%;max-height:240px;object-fit:cover;display:block}
+
+.msg-footer{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:12px;position:relative;z-index:1;
+}
+.msg-time{font-size:11px;color:var(--ink-muted)}
+.msg-reply-btn{
+  font-size:13px;color:var(--caramel);padding:4px 14px;
+  border:1px solid var(--caramel);border-radius:var(--radius-full);
+  cursor:pointer;transition:all .2s;
+}
+.msg-reply-btn:hover{background:rgba(200,125,60,0.06)}
+
+/* Inline reply */
+.reply-area{
+  margin-top:14px;padding-top:14px;
+  border-top:1px solid var(--paper-3);
+  position:relative;z-index:1;
+}
+.reply-area textarea{
+  width:100%;min-height:100px;
+  background:rgba(255,255,255,0.6);border-radius:4px;
+  padding:12px;font-size:14px;line-height:1.6;
+  font-family:var(--font-display);
+  border:1px solid var(--paper-3);
+}
+.reply-area textarea:focus{border-color:var(--caramel)}
+.reply-actions{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:8px}
+.reply-cancel{font-size:13px;color:var(--ink-muted);cursor:pointer}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media(min-width:480px){
+  .view{padding-left:0;padding-right:0}
+  .actor.rabbit{max-width:120px}
+  .actor.fox{max-width:120px}
+  .mailbox.white,.mailbox.orange{max-width:100px}
+  .blackboard-frame{max-height:70vh}
+  .photo-wall-card{max-height:70vh}
+}
+
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ VIEW 0: LOGIN ============ -->
+  <section id="view-login" class="view active">
+    <div class="login-inner">
+      <div class="login-hero">
+        <span class="login-tree">🌳</span>
+        <h1 class="login-title">树屋庭院</h1>
+        <p class="login-sub">a secret garden for two</p>
+      </div>
+      <div class="login-divider"></div>
+
+      <div class="role-cards" id="roleCards">
+        <div class="role-card" data-role="rabbit" onclick="Login.selectRole('rabbit')">
+          <span class="role-emoji">🐰</span>
+          <span class="role-name">我是小兔子</span>
+          <span class="role-check">✓</span>
+        </div>
+        <div class="role-card" data-role="fox" onclick="Login.selectRole('fox')">
+          <span class="role-emoji">🦊</span>
+          <span class="role-name">我是小狐狸</span>
+          <span class="role-check">✓</span>
+        </div>
+      </div>
+
+      <div class="pwd-wrap" id="pwdWrap">
+        <input type="password" class="pwd-input" id="pwdInput" placeholder="输入密码" maxlength="30" onkeydown="if(event.key==='Enter')Login.submit()">
+      </div>
+
+      <div class="login-btn-wrap" id="loginBtnWrap">
+        <button class="btn btn-primary btn-lg" onclick="Login.submit()" style="width:100%" id="loginBtn">进入树屋</button>
+      </div>
+
+      <p class="login-error" id="loginError">密码不对，再试试</p>
+    </div>
+  </section>
+
+  <!-- ============ VIEW 1: COURTYARD ============ -->
+  <section id="view-home" class="view">
+    <img class="scene-bg" src="images/background.jpg" alt="">
+    <div class="sky-indicator" id="skyIcon">☀️</div>
+    <div class="user-chip" id="userChip"></div>
+
+    <img class="actor rabbit" src="images/bunny.png" alt="小兔子">
+    <img class="actor fox" src="images/fox.png" alt="小狐狸">
+
+    <!-- Hitboxes -->
+    <div class="hitbox door-hitbox" data-nav="blackboard"></div>
+    <div class="hitbox sign-hitbox" data-nav="photowall"></div>
+    <div class="hitbox treehole-hitbox" data-nav="treehole"></div>
+
+    <!-- White mailbox (left) -->
+    <div class="mailbox white" id="mailboxWhite" data-mailbox="white">
+      <img src="images/mailbox-white.png" alt="白色信箱">
+      <span class="mail-new-dot" id="dotWhite" style="display:none"></span>
+      <span class="mailbox-label" id="labelWhite"></span>
+    </div>
+
+    <!-- Orange mailbox (right) -->
+    <div class="mailbox orange" id="mailboxOrange" data-mailbox="orange">
+      <img src="images/mailbox-orange.png" alt="橙色信箱">
+      <span class="mail-new-dot" id="dotOrange" style="display:none"></span>
+      <span class="mailbox-label" id="labelOrange"></span>
+    </div>
+
+    <div class="logout-link" onclick="logout()">切换角色</div>
+  </section>
+
+  <!-- ============ VIEW 2: BLACKBOARD ============ -->
+  <section id="view-blackboard" class="view">
+    <div class="back-btn" data-nav="home">← 庭院</div>
+    <div class="blackboard-frame">
+      <div class="wood-frame"></div>
+      <div class="blackboard-inner">
+        <span class="board-title">· 小 黑 板 ·</span>
+        <div class="chalk-list" id="chalkList">
+          <div class="empty-state"><span class="empty-icon">📝</span><span class="empty-title" style="color:rgba(255,255,255,0.25)">黑板上还没有留言</span></div>
+        </div>
+        <div class="chalk-bar">
+          <div class="chalk-tool active" id="chalkToolWrite" onclick="Blackboard.write()">
+            <span class="chalk-tool-emoji" id="chalkEmoji">⚪</span>
+            <span>粉笔</span>
+          </div>
+          <div class="chalk-tool" id="chalkToolErase" onclick="Blackboard.toggleErase()">
+            <span class="chalk-tool-emoji">🧹</span>
+            <span id="eraseLabel">板擦</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VIEW 3: PHOTO WALL ============ -->
+  <section id="view-photowall" class="view">
+    <div class="back-btn" data-nav="home">← 庭院</div>
+    <div class="photo-wall-card">
+      <span class="pw-title">📷 我们的照片墙</span>
+      <div class="photo-grid" id="photoGrid"></div>
+      <button class="btn btn-sage" style="width:100%" onclick="Photowall.triggerUpload()">+ 挂一张照片</button>
+      <input type="file" accept="image/*" id="photoFileInput" style="display:none" onchange="Photowall.handleUpload(event)">
+    </div>
+  </section>
+
+  <!-- ============ VIEW 4: TREE HOLE ============ -->
+  <section id="view-treehole" class="view">
+    <div class="back-btn" data-nav="home">← 庭院</div>
+    <div class="treehole-card">
+      <span class="th-title">🕳️ 树洞漂流瓶</span>
+      <span class="th-desc">塞一个秘密，等TA来发现</span>
+      <div class="treehole-visual" id="treeholeVisual">
+        <span class="treehole-icon">🕳️</span>
+        <span class="th-status-text idle" id="thStatus">树洞里空空的</span>
+      </div>
+      <div class="th-actions">
+        <button class="btn btn-sage" onclick="Treehole.drop()">🫧 放入漂流瓶</button>
+        <button class="btn btn-primary" id="btnPickBottle" onclick="Treehole.pick()" disabled style="opacity:0.4">🔍 取出漂流瓶</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VIEW 5: WRITE LETTER ============ -->
+  <section id="view-write-letter" class="view">
+    <div class="back-btn" data-nav="home">← 庭院</div>
+    <div style="padding:60px 16px 30px;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh">
+      <div class="letter-paper" style="flex:1;display:flex;flex-direction:column">
+        <div>
+          <span class="letter-to">致 <span id="letterPartnerName"></span> <span id="letterPartnerEmoji"></span></span>
+          <div class="letter-hr"></div>
+        </div>
+        <textarea class="letter-body" id="letterText" placeholder="写下你想说的话..." maxlength="500"></textarea>
+        <div class="letter-img-preview" id="letterImgPreview" style="display:none">
+          <img id="letterImgPreviewSrc" src="" alt="">
+          <span class="letter-img-remove" onclick="WriteLetter.removeImage()">✕</span>
+        </div>
+        <span class="letter-sign" id="letterSign"></span>
+      </div>
+      <div class="letter-bar">
+        <div class="add-photo" onclick="WriteLetter.triggerImage()">
+          <span>📷</span><span id="photoBtnLabel">加照片</span>
+        </div>
+        <button class="btn btn-primary send-btn" onclick="WriteLetter.send()">🚩 投进信箱</button>
+        <input type="file" accept="image/*" id="letterFileInput" style="display:none" onchange="WriteLetter.handleImage(event)">
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VIEW 6: READ LETTERS ============ -->
+  <section id="view-read-letters" class="view">
+    <div class="back-btn" data-nav="home">← 庭院</div>
+    <div id="msgList" style="padding-top:50px"></div>
+  </section>
+
+</div>
+
+<!-- ===== SHARED MODAL ===== -->
+<div class="modal-overlay" id="sharedModal" onclick="if(event.target===this)Modal.close()">
+  <div class="modal-sheet" id="sharedModalSheet"></div>
+</div>
+
+<!-- ===== PHOTO PREVIEW MODAL ===== -->
+<div class="modal-overlay" id="photoPreviewModal" onclick="this.classList.remove('open')">
+  <div class="modal-sheet" id="photoPreviewSheet" style="max-height:85vh;overflow-y:auto"></div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div id="toast"></div>
+
+<!-- ===== ANNIVERSARY POPUP ===== -->
+<div class="anniversary-pop" id="anniversaryPop" onclick="this.classList.remove('show')">
+  <span id="anniversaryText"></span>
+  <span class="anniversary-hint">点击关闭</span>
+</div>
+
+<!-- ===== SUPABASE SDK ===== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+/* ============================================
+   树屋庭院 — Application Logic
+   ============================================ */
+
+// ----- CONFIG (replace with your Supabase credentials) -----
+const SUPABASE_URL = 'https://ficqxehpxrcowfgvsgec.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpY3F4ZWhweHJjb3dmZ3ZzZ2VjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1NjU5ODgsImV4cCI6MjA5NDE0MTk4OH0.m7ZE5425S3uwPw1b8NyTtb1LyzocfxJPgWYOo56AJMA';
+
+// ----- Supabase Client -----
+const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ----- State -----
+const S = {
+  session: null, userId: null,
+  myRole: null, myName: null, myEmoji: null, myChalkColor: null,
+  partnerId: null, partnerName: null, partnerEmoji: null,
+  currentView: 'login', viewStack: [],
+};
+
+// ----- Navigation -----
+function navigateTo(view, pushStack = true) {
+  const prev = document.querySelector('.view.active');
+  const next = document.getElementById('view-' + view);
+  if (!next || prev === next) return;
+
+  if (prev) { prev.classList.add('fade-out'); prev.classList.remove('active'); }
+  setTimeout(() => {
+    if (prev) prev.classList.remove('fade-out');
+    next.classList.add('active');
+    if (pushStack && S.currentView !== view) { S.viewStack.push(S.currentView); }
+    S.currentView = view;
+    // Lifecycle
+    const hooks = {
+      home:       () => { Home.onShow(); },
+      blackboard: () => { Blackboard.onShow(); },
+      photowall:  () => { Photowall.onShow(); },
+      treehole:   () => { Treehole.onShow(); },
+      'write-letter': () => { WriteLetter.onShow(); },
+      'read-letters':() => { ReadLetters.onShow(); },
+    };
+    if (hooks[view]) hooks[view]();
+  }, 40);
+}
+
+function goBack() {
+  const prev = S.viewStack.pop();
+  if (prev) navigateTo(prev, false);
+}
+
+// Global click delegation for navigation
+document.getElementById('app').addEventListener('click', e => {
+  const nav = e.target.closest('[data-nav]');
+  if (nav) {
+    const target = nav.dataset.nav;
+    if (target === 'home') { S.viewStack = []; navigateTo('home', false); }
+    else navigateTo(target);
+    return;
+  }
+  // Mailbox clicks
+  const mb = e.target.closest('[data-mailbox]');
+  if (mb && S.currentView === 'home') {
+    Home.onMailboxTap(mb.dataset.mailbox);
+  }
+});
+
+// ----- Toast -----
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = type + ' show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ----- Modal -----
+const Modal = {
+  open(html) {
+    document.getElementById('sharedModalSheet').innerHTML = html;
+    document.getElementById('sharedModal').classList.add('open');
+  },
+  close() { document.getElementById('sharedModal').classList.remove('open'); },
+  confirm(msg, onOk) {
+    this.open(`
+      <span class="modal-title">${msg}</span>
+      <div class="modal-btns">
+        <button class="btn btn-ghost" onclick="Modal.close()">取消</button>
+        <button class="btn btn-primary btn-sm" id="modalConfirmBtn">确认</button>
+      </div>
+    `);
+    document.getElementById('modalConfirmBtn').onclick = () => { Modal.close(); onOk(); };
+  }
+};
+
+// ============================================
+// LOGIN
+// ============================================
+const Login = {
+  selectedRole: null,
+  init() {
+    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('pwdWrap').classList.remove('visible');
+    document.getElementById('loginBtnWrap').classList.remove('visible');
+    document.getElementById('loginError').classList.remove('show');
+    document.getElementById('pwdInput').value = '';
+    this.selectedRole = null;
+  },
+  selectRole(role) {
+    this.selectedRole = role;
+    document.querySelectorAll('.role-card').forEach(c => c.classList.toggle('selected', c.dataset.role === role));
+    document.getElementById('pwdWrap').classList.add('visible');
+    document.getElementById('loginBtnWrap').classList.add('visible');
+    document.getElementById('loginError').classList.remove('show');
+    document.getElementById('pwdInput').value = '';
+    setTimeout(() => document.getElementById('pwdInput').focus(), 400);
+  },
+  async submit() {
+    if (!this.selectedRole) { toast('先选一个角色呀'); return; }
+    const pwd = document.getElementById('pwdInput').value.trim();
+    if (!pwd) { toast('输入密码'); return; }
+
+    const btn = document.getElementById('loginBtn');
+    btn.textContent = '正在进入...'; btn.disabled = true;
+
+    const email = this.selectedRole === 'rabbit' ? 'bunny@treehouse.local' : 'fox@treehouse.local';
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password: pwd });
+
+    if (error) {
+      document.getElementById('loginError').classList.add('show');
+      btn.textContent = '进入树屋'; btn.disabled = false;
+      return;
+    }
+
+    S.session = data.session; S.userId = data.user.id;
+    // Load profile
+    const { data: prof } = await supabase.from('profiles').select('*').eq('id', S.userId).single();
+    if (!prof) { toast('账号未配置，请联系管理员'); btn.textContent = '进入树屋'; btn.disabled = false; return; }
+
+    S.myRole = prof.role; S.myName = prof.name; S.myEmoji = prof.emoji;
+    S.myChalkColor = prof.role === 'rabbit' ? 'white' : 'orange';
+
+    // Load partner
+    if (prof.partner_id) {
+      const { data: partner } = await supabase.from('profiles').select('*').eq('id', prof.partner_id).single();
+      if (partner) { S.partnerId = partner.id; S.partnerName = partner.name; S.partnerEmoji = partner.emoji; }
+    }
+
+    navigateTo('home', false);
+  }
+};
+
+// ============================================
+// HOME (Courtyard)
+// ============================================
+const Home = {
+  onShow() {
+    this.setTimeIcon();
+    this.setupRoleUI();
+    this.checkMailbox();
+  },
+  setTimeIcon() {
+    const h = new Date().getHours();
+    document.getElementById('skyIcon').textContent = (h >= 6 && h < 20) ? '☀️' : '🌙';
+  },
+  setupRoleUI() {
+    document.getElementById('userChip').textContent = S.myEmoji + ' ' + S.myName;
+    const role = S.myRole;
+    const labelW = document.getElementById('labelWhite');
+    const labelO = document.getElementById('labelOrange');
+    if (role === 'rabbit') { labelW.textContent = '收信'; labelO.textContent = '写信'; }
+    else { labelW.textContent = '写信'; labelO.textContent = '收信'; }
+  },
+  async checkMailbox() {
+    if (!S.userId) return;
+    const { count } = await supabase.from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('to_id', S.userId).eq('is_read', false);
+    const has = count > 0;
+    const role = S.myRole;
+    const dotEl = role === 'rabbit' ? document.getElementById('dotWhite') : document.getElementById('dotOrange');
+    const mbEl = role === 'rabbit' ? document.getElementById('mailboxWhite') : document.getElementById('mailboxOrange');
+    dotEl.style.display = has ? 'block' : 'none';
+    if (has) mbEl.classList.add('mailbox-has-mail'); else mbEl.classList.remove('mailbox-has-mail');
+  },
+  onMailboxTap(color) {
+    const role = S.myRole;
+    if (role === 'rabbit') {
+      if (color === 'white') navigateTo('read-letters');
+      else navigateTo('write-letter');
+    } else {
+      if (color === 'white') navigateTo('write-letter');
+      else navigateTo('read-letters');
+    }
+  }
+};
+
+// ============================================
+// BLACKBOARD
+// ============================================
+const Blackboard = {
+  mode: 'write',
+  init() {
+    document.getElementById('chalkEmoji').textContent = S.myChalkColor === 'white' ? '⚪' : '🟠';
+  },
+  toggleErase() {
+    this.mode = this.mode === 'erase' ? 'write' : 'erase';
+    document.getElementById('chalkToolWrite').classList.toggle('active', this.mode === 'write');
+    document.getElementById('chalkToolErase').classList.toggle('active', this.mode === 'erase');
+    document.getElementById('eraseLabel').textContent = this.mode === 'erase' ? '擦除中' : '板擦';
+    this.renderMessages();
+  },
+  async onShow() {
+    this.init();
+    this.mode = 'write';
+    document.getElementById('chalkToolWrite').classList.add('active');
+    document.getElementById('chalkToolErase').classList.remove('active');
+    document.getElementById('eraseLabel').textContent = '板擦';
+    await this.loadMessages();
+  },
+  async loadMessages() {
+    const { data } = await supabase.from('blackboard').select('*').order('created_at', { ascending: true });
+    this.messages = data || [];
+    this.renderMessages();
+  },
+  renderMessages() {
+    const container = document.getElementById('chalkList');
+    if (!this.messages || this.messages.length === 0) {
+      container.innerHTML = '<div class="empty-state"><span class="empty-icon">📝</span><span class="empty-title" style="color:rgba(255,255,255,0.25)">黑板上还没有留言</span></div>';
+      return;
+    }
+    container.innerHTML = this.messages.map(m => `
+      <div class="chalk-msg ${this.mode === 'erase' ? 'erasable' : ''}" data-id="${m.id}" onclick="${this.mode === 'erase' ? `Blackboard.erase(${m.id})` : ''}">
+        <span class="chalk-text ${m.chalk_color === 'orange' ? 'chalk-o' : 'chalk-w'}">${escapeHtml(m.content)}</span>
+        <div class="chalk-meta">
+          <span class="chalk-author">${m.author_emoji} ${m.author_name}</span>
+          <span class="chalk-time">${fmtTime(m.created_at)}</span>
+        </div>
+        ${this.mode === 'erase' ? '<span class="erase-mark">✕</span>' : ''}
+      </div>
+    `).join('');
+  },
+  write() {
+    Modal.open(`
+      <div class="chalk-modal-sheet">
+        <span class="modal-title">${S.myEmoji} 在黑板上留言</span>
+        <textarea class="modal-textarea" id="chalkInput" placeholder="写点什么..." maxlength="200" style="min-height:120px"></textarea>
+        <div class="modal-btns">
+          <button class="btn btn-ghost" onclick="Modal.close()" style="color:rgba(255,255,255,0.5)">取消</button>
+          <button class="btn btn-primary btn-sm" onclick="Blackboard.submitWrite()">写上去</button>
+        </div>
+      </div>
+    `);
+  },
+  async submitWrite() {
+    const content = document.getElementById('chalkInput').value.trim();
+    if (!content) return;
+    await supabase.from('blackboard').insert({
+      content, chalk_color: S.myChalkColor,
+      author_id: S.userId, author_name: S.myName, author_emoji: S.myEmoji,
+      created_at: new Date()
+    });
+    Modal.close();
+    toast('写好了');
+    await this.loadMessages();
+  },
+  async erase(id) {
+    Modal.confirm('擦掉这条留言？', async () => {
+      await supabase.from('blackboard').delete().eq('id', id);
+      toast('已擦掉');
+      await this.loadMessages();
+    });
+  }
+};
+
+// ============================================
+// PHOTO WALL
+// ============================================
+const Photowall = {
+  photos: [],
+  async onShow() {
+    await this.loadPhotos();
+    this.checkAnniversary();
+  },
+  async loadPhotos() {
+    const { data } = await supabase.from('photos').select('*').order('created_at', { ascending: false });
+    this.photos = (data || []).map(p => ({ ...p, commentCount: (p.comments || []).length, createdAtStr: fmtDate(p.created_at) }));
+    this.renderGrid();
+  },
+  renderGrid() {
+    const grid = document.getElementById('photoGrid');
+    if (this.photos.length === 0) {
+      grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">🖼️</span><span class="empty-title">墙上还空空的</span><span class="empty-desc">挂上你们的记忆吧</span></div>';
+      return;
+    }
+    grid.innerHTML = this.photos.map(p => `
+      <div class="photo-card" onclick="Photowall.preview('${p.id}')">
+        <img src="${p.image_url}" alt="" loading="lazy">
+        <span class="photo-pin">📌</span>
+        <div class="photo-meta">
+          <span>${p.uploader_name}</span>
+          <span>${p.createdAtStr}</span>
+        </div>
+      </div>
+    `).join('');
+  },
+  triggerUpload() { document.getElementById('photoFileInput').click(); },
+  async handleUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    toast('上传中...');
+    const path = `public/${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`;
+    const { error: upErr } = await supabase.storage.from('photos').upload(path, file);
+    if (upErr) { toast('上传失败', 'error'); return; }
+    const { data: urlData } = supabase.storage.from('photos').getPublicUrl(path);
+    await supabase.from('photos').insert({
+      image_url: urlData.publicUrl, uploader_id: S.userId,
+      uploader_name: S.myEmoji + ' ' + S.myName, comments: [], created_at: new Date()
+    });
+    toast('照片已挂上墙', 'success');
+    await this.loadPhotos();
+    e.target.value = '';
+  },
+  preview(photoId) {
+    const p = this.photos.find(ph => String(ph.id) === String(photoId));
+    if (!p) return;
+    const comments = p.comments || [];
+    const commentsHtml = comments.length === 0
+      ? '<div class="no-comments">还没有留言，写下第一条吧</div>'
+      : comments.map(c => `<div class="comment-item"><span class="c-author">${c.author}</span><span class="c-text">${c.text}</span></div>`).join('');
+
+    document.getElementById('photoPreviewSheet').innerHTML = `
+      <div class="preview-img-wrap"><img src="${p.image_url}" alt=""></div>
+      <div class="comment-section">
+        <span class="comment-title">💬 时光留言</span>
+        <div class="comment-list">${commentsHtml}</div>
+        <button class="btn btn-outline btn-sm" style="width:100%" id="addCommentBtn">+ 追加留言</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px" onclick="document.getElementById('photoPreviewModal').classList.remove('open')">关闭</button>
+    `;
+    document.getElementById('photoPreviewModal').classList.add('open');
+    document.getElementById('addCommentBtn').onclick = () => this.showCommentInput(p.id);
+  },
+  showCommentInput(photoId) {
+    Modal.open(`
+      <span class="modal-title">💬 写下时光留言</span>
+      <textarea class="modal-textarea" id="commentInput" placeholder="让这张照片多一层记忆..." maxlength="200"></textarea>
+      <div class="modal-btns">
+        <button class="btn btn-ghost" onclick="Modal.close()">取消</button>
+        <button class="btn btn-primary btn-sm" onclick="Photowall.submitComment(${photoId})">贴上</button>
+      </div>
+    `);
+  },
+  async submitComment(photoId) {
+    const text = document.getElementById('commentInput').value.trim();
+    if (!text) return;
+    const newComment = { author: S.myEmoji + ' ' + S.myName, text, time: new Date().toISOString() };
+    const photo = this.photos.find(p => String(p.id) === String(photoId));
+    const updated = [...(photo?.comments || []), newComment];
+    await supabase.from('photos').update({ comments: updated }).eq('id', photoId);
+    Modal.close();
+    toast('留言已贴上', 'success');
+    await this.loadPhotos();
+    this.preview(photoId);
+  },
+  async checkAnniversary() {
+    const { data } = await supabase.from('anniversaries').select('*');
+    if (!data?.length) return;
+    const today = new Date();
+    const todayStr = `${today.getMonth()+1}/${today.getDate()}`;
+    for (const ann of data) {
+      const d = new Date(ann.date);
+      if (`${d.getMonth()+1}/${d.getDate()}` === todayStr) {
+        const days = Math.floor((today - d) / 86400000);
+        document.getElementById('anniversaryText').textContent = `今天是我们「${ann.name}」${days} 天 🎉`;
+        document.getElementById('anniversaryPop').classList.add('show');
+        setTimeout(() => document.getElementById('anniversaryPop').classList.remove('show'), 6000);
+      }
+    }
+  }
+};
+
+// ============================================
+// TREE HOLE
+// ============================================
+const Treehole = {
+  bottle: null,
+  async onShow() { await this.check(); },
+  async check() {
+    const { data } = await supabase.from('treeholes')
+      .select('*').eq('to_id', S.userId).eq('status', 'waiting')
+      .order('created_at', { ascending: false }).limit(1);
+    this.bottle = data?.[0] || null;
+    const vis = document.getElementById('treeholeVisual');
+    const st = document.getElementById('thStatus');
+    const btn = document.getElementById('btnPickBottle');
+    if (this.bottle) {
+      vis.classList.add('glowing');
+      st.textContent = '✨ 树洞在发光！有东西在等你 ✨'; st.className = 'th-status-text glowing';
+      btn.disabled = false; btn.style.opacity = '1';
+    } else {
+      vis.classList.remove('glowing');
+      st.textContent = '树洞里空空的'; st.className = 'th-status-text idle';
+      btn.disabled = true; btn.style.opacity = '0.4';
+    }
+  },
+  drop() {
+    Modal.open(`
+      <span class="modal-title">🫧 塞进树洞</span>
+      <textarea class="modal-textarea" id="bottleInput" placeholder="写一个秘密..." maxlength="150"></textarea>
+      <div class="modal-btns">
+        <button class="btn btn-ghost" onclick="Modal.close()">取消</button>
+        <button class="btn btn-primary btn-sm" onclick="Treehole.submitDrop()">放入</button>
+      </div>
+    `);
+  },
+  async submitDrop() {
+    const content = document.getElementById('bottleInput').value.trim();
+    if (!content) return;
+    await supabase.from('treeholes').insert({
+      content, from_id: S.userId, to_id: S.partnerId,
+      status: 'waiting', reply: '', created_at: new Date()
+    });
+    Modal.close(); toast('漂流瓶已放进树洞', 'success');
+  },
+  pick() {
+    if (!this.bottle) return;
+    Modal.open(`
+      <span class="modal-title">🫧 漂流瓶</span>
+      <p style="font-size:16px;line-height:1.7;color:var(--ink);margin-bottom:16px;font-family:var(--font-display)">${escapeHtml(this.bottle.content)}</p>
+      <div class="modal-btns">
+        <button class="btn btn-ghost" onclick="Treehole.markRead();Modal.close()">关闭</button>
+        <button class="btn btn-primary btn-sm" onclick="Treehole.showReply()">回复</button>
+      </div>
+    `);
+  },
+  showReply() {
+    Modal.open(`
+      <span class="modal-title">回复漂流瓶</span>
+      <textarea class="modal-textarea" id="replyInput" placeholder="写下你的回复..." maxlength="150"></textarea>
+      <div class="modal-btns">
+        <button class="btn btn-ghost" onclick="Treehole.markRead();Modal.close()">不回复了</button>
+        <button class="btn btn-primary btn-sm" onclick="Treehole.submitReply()">回复</button>
+      </div>
+    `);
+  },
+  async submitReply() {
+    const reply = document.getElementById('replyInput').value.trim();
+    if (!reply) { await this.markRead(); return; }
+    await supabase.from('treeholes').update({ reply, status: 'replied' }).eq('id', this.bottle.id);
+    Modal.close(); toast('已回复', 'success');
+    this.bottle = null;
+    await this.check();
+  },
+  async markRead() {
+    if (!this.bottle) return;
+    await supabase.from('treeholes').update({ status: 'read' }).eq('id', this.bottle.id);
+    this.bottle = null;
+    await this.check();
+  }
+};
+
+// ============================================
+// WRITE LETTER
+// ============================================
+const WriteLetter = {
+  imageFile: null,
+  onShow() {
+    this.imageFile = null;
+    if (this._objectUrl) { URL.revokeObjectURL(this._objectUrl); this._objectUrl = null; }
+    document.getElementById('letterText').value = '';
+    document.getElementById('letterImgPreview').style.display = 'none';
+    document.getElementById('photoBtnLabel').textContent = '加照片';
+    document.getElementById('letterPartnerName').textContent = S.partnerName;
+    document.getElementById('letterPartnerEmoji').textContent = S.partnerEmoji;
+    document.getElementById('letterSign').textContent = S.myEmoji + ' ' + S.myName;
+  },
+  triggerImage() { document.getElementById('letterFileInput').click(); },
+  handleImage(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    this.imageFile = file;
+    if (this._objectUrl) URL.revokeObjectURL(this._objectUrl);
+    this._objectUrl = URL.createObjectURL(file);
+    document.getElementById('letterImgPreviewSrc').src = this._objectUrl;
+    document.getElementById('letterImgPreview').style.display = 'block';
+    document.getElementById('photoBtnLabel').textContent = '换一张';
+    e.target.value = '';
+  },
+  removeImage() {
+    this.imageFile = null;
+    if (this._objectUrl) { URL.revokeObjectURL(this._objectUrl); this._objectUrl = null; }
+    document.getElementById('letterImgPreview').style.display = 'none';
+    document.getElementById('photoBtnLabel').textContent = '加照片';
+  },
+  async send() {
+    const text = document.getElementById('letterText').value.trim();
+    if (!text && !this.imageFile) { toast('写点什么吧'); return; }
+
+    toast('投递中...');
+    let imageUrl = '';
+    if (this.imageFile) {
+      const path = `public/${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`;
+      const { error } = await supabase.storage.from('letters').upload(path, this.imageFile);
+      if (!error) {
+        const { data } = supabase.storage.from('letters').getPublicUrl(path);
+        imageUrl = data.publicUrl;
+      }
+    }
+    await supabase.from('messages').insert({
+      from_id: S.userId, to_id: S.partnerId, content: text,
+      image_url: imageUrl, is_read: false, created_at: new Date()
+    });
+    toast('信件已投递 🚩', 'success');
+    setTimeout(() => goBack(), 800);
+  }
+};
+
+// ============================================
+// READ LETTERS
+// ============================================
+const ReadLetters = {
+  letters: [], replyingTo: null,
+  async onShow() { await this.load(); },
+  async load() {
+    const { data } = await supabase.from('messages')
+      .select('*').eq('to_id', S.userId).order('created_at', { ascending: false });
+    this.letters = (data || []).map(m => ({ ...m, timeStr: relTime(m.created_at) }));
+    this.render();
+    this.markRead(data || []);
+  },
+  async markRead(data) {
+    const unread = data.filter(m => !m.is_read).map(m => m.id);
+    if (unread.length) {
+      await supabase.from('messages').update({ is_read: true }).in('id', unread);
+      this.letters.forEach(m => { if (unread.includes(m.id)) m.is_read = true; });
+      this.render();
+    }
+  },
+  render() {
+    const container = document.getElementById('msgList');
+    if (this.letters.length === 0) {
+      container.innerHTML = '<div class="empty-state"><span class="empty-icon">📭</span><span class="empty-title">信箱是空的</span><span class="empty-desc">等TA给你写信吧</span></div>';
+      return;
+    }
+    container.innerHTML = this.letters.map(m => `
+      <div class="msg-card ${m.is_read ? '' : 'unread'}">
+        ${!m.is_read ? '<span class="unread-dot"></span>' : ''}
+        <div class="msg-text">${escapeHtml(m.content)}</div>
+        ${m.image_url ? `<div class="msg-image" onclick="viewImage('${m.image_url}')"><img src="${m.image_url}" alt="" loading="lazy"><span class="tap-hint" style="position:absolute;bottom:6px;right:8px;font-size:10px;color:#fff;background:rgba(0,0,0,0.4);padding:2px 8px;border-radius:4px">点击查看大图</span></div>` : ''}
+        <div class="msg-footer">
+          <span class="msg-time">${m.timeStr}</span>
+          <span class="msg-reply-btn" onclick="ReadLetters.toggleReply(${m.id})">✎ 回信</span>
+        </div>
+        ${this.replyingTo === m.id ? `
+          <div class="reply-area">
+            <textarea id="replyTextarea" placeholder="写下回信..."></textarea>
+            <div class="reply-actions">
+              <span class="reply-cancel" onclick="ReadLetters.toggleReply(null)">取消</span>
+              <button class="btn btn-primary btn-sm" onclick="ReadLetters.sendReply(${m.id})">投进信箱 🚩</button>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `).join('');
+  },
+  toggleReply(id) {
+    this.replyingTo = this.replyingTo === id ? null : id;
+    this.render();
+  },
+  async sendReply(originalMsgId) {
+    const text = document.getElementById('replyTextarea').value.trim();
+    if (!text) { toast('写点什么吧'); return; }
+    const msg = this.letters.find(m => m.id === originalMsgId);
+    await supabase.from('messages').insert({
+      from_id: S.userId, to_id: msg.from_id, content: text,
+      image_url: '', is_read: false, created_at: new Date()
+    });
+    toast('回信已投递', 'success');
+    this.replyingTo = null;
+  }
+};
+
+// ============================================
+// UTILITIES
+// ============================================
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function fmtTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function fmtDate(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function relTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts), now = new Date(), diff = now - d;
+  if (diff < 3600000) { const m = Math.floor(diff/60000); return m <= 0 ? '刚刚' : m + '分钟前'; }
+  if (diff < 86400000 && d.getDate() === now.getDate()) return '今天 ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  return fmtTime(ts);
+}
+
+function viewImage(url) {
+  document.getElementById('photoPreviewSheet').innerHTML = `
+    <img src="${url}" style="width:100%;max-height:70vh;object-fit:contain;border-radius:8px;display:block">
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:12px" onclick="document.getElementById('photoPreviewModal').classList.remove('open')">关闭</button>
+  `;
+  document.getElementById('photoPreviewModal').classList.add('open');
+}
+
+// ============================================
+// INIT
+// ============================================
+document.addEventListener('DOMContentLoaded', async () => {
+  if (!supabase) {
+    Login.init();
+    document.getElementById('loginError').textContent = 'Supabase 未配置，请按 README 完成部署步骤';
+    document.getElementById('loginError').classList.add('show');
+    return;
+  }
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      S.session = session; S.userId = session.user.id;
+      const { data: prof } = await supabase.from('profiles').select('*').eq('id', S.userId).single();
+      if (prof) {
+        S.myRole = prof.role; S.myName = prof.name; S.myEmoji = prof.emoji;
+        S.myChalkColor = prof.role === 'rabbit' ? 'white' : 'orange';
+        S.partnerId = prof.partner_id;
+        if (prof.partner_id) {
+          const { data: partner } = await supabase.from('profiles').select('*').eq('id', prof.partner_id).single();
+          if (partner) { S.partnerName = partner.name; S.partnerEmoji = partner.emoji; }
+        }
+        navigateTo('home', false);
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('Session check failed:', e);
+  }
+  Login.init();
+});
+
+// Logout helper (exposed for potential use)
+function logout() {
+  supabase.auth.signOut();
+  S.session = null; S.userId = null;
+  S.viewStack = [];
+  Login.init();
+  navigateTo('login', false);
+}
+</script>
+
+</body>
+</html>

@@ -1091,6 +1091,7 @@ const Login = {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password: pwd });
 
     if (error) {
+      document.getElementById('loginError').textContent = error.message;
       document.getElementById('loginError').classList.add('show');
       btn.textContent = '进入树屋'; btn.disabled = false;
       return;
